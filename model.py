@@ -31,9 +31,9 @@ urlsaGSP = ['https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol
 
 urlsaNDAQ = ['https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=NDAQ&outputsize=full&apikey=']
 
-urlsqOPEC = ['https://www.quandl.com/api/v3/datasets/OPEC/ORB/data.csv?start_date=' + start_date + '&end_date=' + end_date + '&api_key=' + api_key_quandl]
+urlsqOPEC = ['https://www.quandl.com/api/v3/datasets/OPEC/ORB/data.csv?start_date=' + start_date + '&end_date=' + end_date + '&api_key=']
 
-urlsqUSTREASURY = ['https://www.quandl.com/api/v3/datasets/USTREASURY/YIELD.csv?start_date=' + start_date + '&end_date=' + end_date + '&api_key=' + api_key_quandl]
+urlsqUSTREASURY = ['https://www.quandl.com/api/v3/datasets/USTREASURY/YIELD.csv?start_date=' + start_date + '&end_date=' + end_date + '&api_key=']
 
 
 for link in urlsaGSP: 
@@ -48,7 +48,7 @@ for link in urlsaGSP:
 
 for link2 in urlsaNDAQ: 
     
-    remoteFile = url.urlopen(link + api_key_alpha + '&datatype=csv')
+    remoteFile = url.urlopen(link2 + api_key_alpha + '&datatype=csv')
     print(remoteFile)
     html = remoteFile.read().decode('ascii').splitlines()
     c = pd.DataFrame(data=html)
@@ -59,7 +59,7 @@ for link2 in urlsaNDAQ:
     
     
 for link3 in urlsqOPEC: 
-    remoteFile = url.urlopen(link + api_key_quandl + '&datatype=csv' )
+    remoteFile = url.urlopen(link3 + api_key_quandl)
     print(remoteFile)
     html1 = remoteFile.read().decode('ascii').splitlines()
     d = pd.DataFrame(data=html1)
@@ -69,7 +69,7 @@ for link3 in urlsqOPEC:
 
 
 for link4 in urlsqUSTREASURY: 
-    remoteFile = url.urlopen(link + api_key_quandl + '&datatype=csv' )
+    remoteFile = url.urlopen(link4 + api_key_quandl)
     print(remoteFile)
     html1 = remoteFile.read().decode('ascii').splitlines()
     e = pd.DataFrame(data=html1)
@@ -102,9 +102,9 @@ e.isnull().sum()
 
 # we are comparing the 'timestamp' column of the dataframes with each other, 
 # to make sure they match across all df we pulled. False indicates matching values (ne = not equal) 
-
-datecheck = c.timestamp.ne(d.timestamp, e.timestamp)
-datecheck.unique() #output = array([False])
+#
+#datecheck = c.timestamp.ne(d.timestamp, e.timestamp)
+#datecheck.unique() #output = array([False])
 
     
 #%%   
