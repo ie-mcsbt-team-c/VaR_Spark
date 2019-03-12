@@ -101,16 +101,18 @@ for ins in d:
 
 
 #%%Example with SRCE
+    
+import pandas as pd 
 
-SRCE = d["SRCE"]
+SRCE = pd.read_csv("https://raw.githubusercontent.com/ie-mcsbt-team-c/VaR_Spark/master/instruments/SRCE.csv")
+
+#we apply a mask to limit the dates to our imposed timeframes
 
 start_date     = '2008-01-01'
 end_date       = '2019-01-31'
 
 mask = (SRCE['timestamp'] >= start_date) & (SRCE['timestamp'] <= end_date)
-SRCE_d = SRCE.loc[mask]
-
-export_csv = SRCE.to_csv (r'C:\Users\Leila\Desktop\{}.csv'.format(ins), index = None, header=True) #Don't forget to add '.csv' at the end of the path
+SRCE_df = SRCE.loc[mask]
 
 #%%
 #GET THE DATA 
