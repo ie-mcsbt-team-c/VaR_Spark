@@ -80,7 +80,7 @@ d = {}
 #change the name of the group to group+1 to download the next 5 instruments 
 #(allow 1 min btw each, download limited to 5 per min)
 
-for ins in group1:
+for ins in group10:
       
     d[ins] = pd.DataFrame()
         
@@ -94,6 +94,11 @@ for ins in group1:
     key = key[0].str.split(",", expand = True)
     key.columns = key.iloc[0]
     d[ins] = key[1:]  
+    
+for ins in d:    
+    
+    export_csv = d[ins].to_csv(r"C:\Users\Leila\Desktop\instruments\{}.csv".format(ins), index = None, header=True) #Don't forget to add '.csv' at the end of the path
+
 
 #%%Example with SRCE
 
@@ -104,6 +109,8 @@ end_date       = '2019-01-31'
 
 mask = (SRCE['timestamp'] >= start_date) & (SRCE['timestamp'] <= end_date)
 SRCE_d = SRCE.loc[mask]
+
+export_csv = SRCE.to_csv (r'C:\Users\Leila\Desktop\{}.csv'.format(ins), index = None, header=True) #Don't forget to add '.csv' at the end of the path
 
 #%%
 #GET THE DATA 
