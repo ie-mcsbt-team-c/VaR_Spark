@@ -77,57 +77,123 @@ for link4 in urlsqUSTREASURY:
 
 
 
+#%%
+#if the dataframe has no 'open' and 'close' column, we must reprocess it
+    
+#unprocessed = [d, e]
+#
+#type(e)
+##here we write the column that we will choose as the open and close 
+#
+#column = ['Value', '1 MO']
+#
+#i = 0 
+#
+#for element in unprocessed: 
+#    
+#    element = element.rename(columns={column[i]: 'open'})
+#    element['close'] = element['open']
+#    
+#    i = i +1 
+#    
+#    print('done with ' + element)
 
+
+dataframes_clean =[]
+#here we write the column that we will choose as the open and close 
+unprocessed = [d, e]
+columns = ['Value', '1 MO']
+
+i = 0 
+for column in columns: 
+    if i < len(unprocessed): 
+        
+        unprocessed[i] = unprocessed[i].rename(columns={column: 'open'})
+        unprocessed[i]['close'] = unprocessed[i]['open']
+        dataframes_clean.append(unprocessed[i])
+        
+
+    i = i +1 
+        
+    
 #%%
 
-dataframes = [b,c,d,e]
+#Can only insert dataframes that have the 'open' and 'close' columns
+dataframes = [b,c]
 
-for dataf in dataframes: 
+for dataf in dataframes_clean: 
     
 
     i = 1
     df = []
     for row in dataf.iterrows():
-        if i < (len(c) - 5):
-            if dataf is b or c: 
+        if i < (len(dataf) - 5):
+#            if dataf == (b) | (c): 
             
-                x = dataf.iloc[i]
-                x1 = x['close']
-                x2 = pd.to_numeric(x1)
+            x = dataf.iloc[i]
+            x1 = x['close']
+            x2 = pd.to_numeric(x1)
+            
+            
+            y = dataf.iloc[i + 5]
+            y1 = y['open']
+            y2 = pd.to_numeric(y1)
                 
-                
-                y = dataf.iloc[i + 5]
-                y1 = y['open']
-                y2 = pd.to_numeric(y1)
-                
-            elif dataf == d: 
-                x = dataf.iloc[i]
-                x1 = x['Value']
-                x2 = pd.to_numeric(x1)
-                
-                
-                y = dataf.iloc[i + 5]
-                y1 = y['Value']
-                y2 = pd.to_numeric(y1)
-                
-            elif dataf == e: 
-                x = dataf.iloc[i]
-                x1 = x['1 MO']
-                x2 = pd.to_numeric(x1)
-                
-                y = dataf.iloc[i + 5]
-                y1 = y['1 MO']
-                y2 = pd.to_numeric(y1)
+#            elif dataf == d: 
+#                x = dataf.iloc[i]
+#                x1 = x['Value']
+#                x2 = pd.to_numeric(x1)
+#                
+#                
+#                y = dataf.iloc[i + 5]
+#                y1 = y['Value']
+#                y2 = pd.to_numeric(y1)
+#                
+#            elif dataf == e: 
+#                x = dataf.iloc[i]
+#                x1 = x['1 MO']
+#                x2 = pd.to_numeric(x1)
+#                
+#                y = dataf.iloc[i + 5]
+#                y1 = y['1 MO']
+#                y2 = pd.to_numeric(y1)
 
                 
                 
-            ret = ((x2 - y2) / y2) 
-    
-            df.append(ret)
-            
-            i = i + 1
+        ret = ((x2 - y2) / y2) 
+
+        df.append(ret)
         
-        df = pd.DataFrame(df)
+        i = i + 1
+        
+    df = pd.DataFrame(df)
         
 #    print(dataf)
-        dataf['return'] = df
+    dataf['return'] = df
+    
+
+    
+ #%%
+#Now we do some post-processing to have the dataframe prepared.    
+
+#cols_of_interest = ['Date', 'return']
+#i = 0 
+#for col in dataframes_clean[i]: 
+#    if i < len(dataframes): 
+#        if col != 'Date' or 'return': 
+#            del dataframes_clean[i][col]
+#
+#    i = i + 1
+#
+#dataframes_clean[0]
+
+
+#%%
+b = dataframes[0].drop(['open', 'close', 'high', 'low', 'volume'], axis=1)
+c = dataframes[1].drop(['open', 'close', 'high', 'low', 'volume'], axis=1) 
+d = dataframes_clean[0].drop(['open', 'close'], axis=1) 
+#e = dataframes_clean[0]['Date', 'return']
+
+
+e = dataframes_clean[0](dataframes_clean[0].intersection(['Date','return']), 1, inplace=True)
+
