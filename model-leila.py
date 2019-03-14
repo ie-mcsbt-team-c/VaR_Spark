@@ -36,12 +36,16 @@ group8 = ["HOTR","PLCE","JRJC","CHOP","HGSH"]
 group9 = ["HTHT","IMOS","DAEG","DJCO","SATS"]
 group10 = ["WATT","INBK","FTLB","QABA","GOOG"]
 
+G1=["AVHI","BIRT","DAEG","EPAX"]
+G2=["SHLM","YPRO","HAWK","HOTR"]
+
+
 factors_a =  ["^GSPC","NSDQ"]
 #factors_q =  
 
 start_date     = '2010-02-21'
 end_date       = '2019-02-02'
-api_key_alpha  = 'SQ60DKQWSFAU53XH'
+api_key_alpha  = '6CY7P6QD71BDNVQX'
 api_key_quandl = 'ujUGW2cbgsDmD7sP359j'
 
 urlsa = [ 
@@ -80,7 +84,7 @@ d = {}
 #change the name of the group to group+1 to download the next 5 instruments 
 #(allow 1 min btw each, download limited to 5 per min)
 
-for ins in group10:
+for ins in group15:
       
     d[ins] = pd.DataFrame()
         
@@ -97,7 +101,7 @@ for ins in group10:
     
 for ins in d:    
     
-    export_csv = d[ins].to_csv(r"C:\Users\Leila\Desktop\instruments\{}.csv".format(ins), index = None, header=True) #Don't forget to add '.csv' at the end of the path
+    export_csv = d[ins].to_csv(r"C:\Users\Leila\Desktop\VaR_Spark\instruments\{}.csv".format(ins), index = None, header=True) #Don't forget to add '.csv' at the end of the path
 
 
 #%%Example with SRCE
