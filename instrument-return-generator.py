@@ -21,12 +21,13 @@ instruments = symbols.split()
 
 print(instruments)
 
-d_instruments = {}
+d = {}
 
 for instrument in instruments: 
     print(instrument)
     df = pd.read_csv("https://raw.githubusercontent.com/ie-mcsbt-team-c/VaR_Spark/master/instruments/{}.csv". format(instrument))
-    d_instruments[instrument] = pd.DataFrame(df)
+    
+    d[instrument] = pd.DataFrame(df)
     
 
 
