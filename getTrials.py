@@ -13,11 +13,8 @@ from pyspark.sql.session import SparkSession
 sc = SparkContext('local')
 spark = SparkSession(sc)
     
-mean = spark.read
-        .format("csv")
-        .option("header", "false") 
-        .load("mean.csv")
+df = spark.read.format("csv").option("header", "true").load("mean.csv")
         
-print(mean)
+print(df)
 
 spark.stop()
