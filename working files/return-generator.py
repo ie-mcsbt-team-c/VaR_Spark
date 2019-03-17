@@ -204,7 +204,27 @@ d['Date']= pd.to_datetime(d['Date'])
 ff4 = pd.merge(ff3, d, on=['Date'], how='left')
 
 e['Date']= pd.to_datetime(e['Date'])
-factors_dataframe = pd.merge(ff4, e, on=['Date'], how='left')
+df5 = pd.merge(ff4, e, on=['Date'], how='left')
+
+
+df5.isnull().sum()
+
+# The heat map show correlated null-values across the data - meaning that all factors have null-values on the same dates. 
+# It can be assumed that these dates are official hollidays, that apply to all factors.
+sbn.heatmap(df5.isnull(), cbar=False)
+
+#All columns have the same number of null values (103)
+null_counts = df5.isnull().sum()/len(df5)
+plt.figure(figsize=(16,8))
+plt.xticks(np.arange(len(null_counts))+0.5,null_counts.index,rotation='vertical')
+plt.ylabel('fraction of rows with missing data')
+plt.bar(np.arange(len(null_counts)),null_counts)
+
+
+# Df with all rows containing null values including the date (103 entries)
+# We can see that each year has around 9-10 dates with null-values spread across the month.
+# Therefore filling null values with the proceeding value can be an adequate method to deal with them. 
+null_data = df2[df2.isnull().any(axis=1)]
 
 #Finally, we name the columns to keep track of each return
 factors_dataframe.columns = ['Date', 'return urlsaGSP', 'return urlsaNDAQ', 'return urlsqOPEC', 'return urlsqUSTREASURY']
