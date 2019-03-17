@@ -3,12 +3,15 @@
 #%%
 import urllib.request as url
 import pandas as pd 
+import numpy as np
+import seaborn as sbn
+import matplotlib.pyplot as plt
 
 
 #Here, we declare as variables our start and end dates and our api keys for both services
 
-start_date     = '2010-02-21'
-end_date       = '2019-03-11'
+start_date     = '2008-01-01'
+end_date       = '2019-01-31'
 api_key_alpha  = 'SQ60DKQWSFAU53XH'
 api_key_quandl = 'ujUGW2cbgsDmD7sP359j'
 
@@ -188,23 +191,23 @@ e = dataframes_clean[1][['Date', 'return']]
 #under the name Date. 
 
 
-ff1 = pd.bdate_range('2008-01-01', '2019-01-31')
-ff1 = pd.DataFrame(ff1,columns=['Date'])
+df1 = pd.bdate_range('2008-01-01', '2019-01-31')
+df1 = pd.DataFrame(df1,columns=['Date'])
 #We must invert the order of the date-values in order to have them descending. 
-ff1 = ff1.iloc[::-1]
+df1 = df1.iloc[::-1]
 
 #A number of merges using the date as the index. 
 b['Date']= pd.to_datetime(b['Date'])
-ff2 = pd.merge(ff1, b, on=['Date'], how='left')
+df2 = pd.merge(df1, b, on=['Date'], how='left')
 
 c['Date']= pd.to_datetime(c['Date'])
-ff3 = pd.merge(ff2, c, on=['Date'], how='left')
+df3 = pd.merge(df2, c, on=['Date'], how='left')
 
 d['Date']= pd.to_datetime(d['Date'])
-ff4 = pd.merge(ff3, d, on=['Date'], how='left')
+df4 = pd.merge(df3, d, on=['Date'], how='left')
 
 e['Date']= pd.to_datetime(e['Date'])
-df5 = pd.merge(ff4, e, on=['Date'], how='left')
+df5 = pd.merge(df4, e, on=['Date'], how='left')
 
 
 df5.isnull().sum()
@@ -226,8 +229,15 @@ plt.bar(np.arange(len(null_counts)),null_counts)
 # Therefore filling null values with the proceeding value can be an adequate method to deal with them. 
 null_data = df2[df2.isnull().any(axis=1)]
 
+df5.replace(np.inf, np.nan)
+df5.replace(-np.inf, np.nan)
+
+
+df5 = df5.fillna(method='bfill')
+
+
 #Finally, we name the columns to keep track of each return
-factors_dataframe.columns = ['Date', 'return urlsaGSP', 'return urlsaNDAQ', 'return urlsqOPEC', 'return urlsqUSTREASURY']
+df5.columns = ['Date', 'return urlsaGSP', 'return urlsaNDAQ', 'return urlsqOPEC', 'return urlsqUSTREASURY']
 #We export it to a csv taking away the index-column. 
-factors_dataframe.to_csv('/Users/yotroz/Ironhackers Dropbox/Octavio Ramirez/Work/MDBI_IE/Term_2/DATA_SCIENCE_MUNGING_ANALYTICS/VaR-Spark-Montecarlo/VaR_Spark/factors_returns.csv', index=False)
+df5.to_csv('/Users/yotroz/Ironhackers Dropbox/Octavio Ramirez/Work/MDBI_IE/Term_2/DATA_SCIENCE_MUNGING_ANALYTICS/VaR-Spark-Montecarlo/VaR_Spark/factors_returns.csv', index=False)
 
