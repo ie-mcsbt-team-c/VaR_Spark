@@ -16,7 +16,7 @@ spark = SparkSession(sc)
 mean = spark.read
         .format("csv")
         .option("header", "false") 
-        .load("C:\Users\Leila\Desktop\VaR_Spark\mean.csv")
+        .load("mean.csv")
         
 print(mean)
 
