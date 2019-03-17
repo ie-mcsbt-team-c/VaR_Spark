@@ -326,12 +326,35 @@ parallelism = 2
 t = 10000
 trial_indexes = list(range(0, parallelism))
 seedRDD = sc.parallelize(trial_indexes, parallelism)
-bFactorWeights = sc.broadcast(coefs)
+
+val coefs = spark.read
+         .format("csv")
+         .option("header", "false") 
+         .option("mode", "DROPMALFORMED")
+         .load("C:\Users\Leila\Desktop\VaR_Spark\coefs.csv")
+         
+val inter = spark.read
+         .format("csv")
+         .option("header", "false") 
+         .option("mode", "DROPMALFORMED")
+         .load("C:\Users\Leila\Desktop\VaR_Spark\inter.csv")
+         
+val mean = spark.read
+         .format("csv")
+         .option("header", "false") 
+         .option("mode", "DROPMALFORMED")
+         .load("C:\Users\Leila\Desktop\VaR_Spark\mean.csv")
+         
+val cov = spark.read
+         .format("csv")
+         .option("header", "false") 
+         .option("mode", "DROPMALFORMED")
+         .load("C:\Users\Leila\Desktop\VaR_Spark\cov.csv")
 
 trials = seedRDD.flatMap(lambda idx: \
                 generate_trial(
                     max(int(t/parallelism), 1), 
-                    mean, cov,
+                    mean.value, cov.value,
                     coefs.value,inter.value
                 ))
 trials.cache()
@@ -347,6 +370,7 @@ def fivePercentVaR(trials):
     numTrials = trials.count()
     topLosses = trials.takeOrdered(max(round(numTrials/20.0), 1))
     return topLosses[-1]
+
 
 
 
