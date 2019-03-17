@@ -7,14 +7,14 @@ Created on Sun Mar 17 13:12:07 2019
 
 #%%
 
-from pyspark.context import SparkContext
-from pyspark.sql.session import SparkSession
+from pyspark.sql import SparkSession
 
-sc = SparkContext('local')
-spark = SparkSession(sc)
-    
-df = spark.read.format("csv").option("header", "true").load("mean.csv")
-        
-print(df)
+spark = SparkSession \
+    .builder \
+    .appName("Python Spark SQL basic example") \
+    .config("spark.some.config.option", "some-value") \
+    .getOrCreate()
 
-spark.stop()
+df = spark.read.csv("mean.csv",header=True,sep="\n");
+
+print(df.collect())
