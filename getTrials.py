@@ -11,8 +11,7 @@ from pyspark.sql import SparkSession
 
 spark = SparkSession \
     .builder \
-    .appName("Python Spark SQL basic example") \
-    .config("spark.some.config.option", "some-value") \
+    .appName("basic") \
     .getOrCreate()
 
 df = spark.read.csv("mean.csv",header=True,sep="\n");
