@@ -4,14 +4,8 @@
 import urllib.request as url
 import pandas as pd 
 
-#remoteFile = url.urlopen('https://www.quandl.com/api/v3/datasets/OPEC/ORB/data.csv?start_date=2010-02-21&end_date=2019-02-21&api_key=ujUGW2cbgsDmD7sP359j')
-#html = remoteFile.read().decode('ascii').splitlines()
-#print(html)
 
-#FACTORS : Try to do a for loop for getting all the stock 
-#S&P 500 
-
-
+#Here we declare as variables 
 
 start_date     = '2010-02-21'
 end_date       = '2019-03-11'
@@ -19,11 +13,11 @@ api_key_alpha  = 'SQ60DKQWSFAU53XH'
 api_key_quandl = 'ujUGW2cbgsDmD7sP359j'
 
 
-urlsaGSP = ['https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=^GSPC&outputsize=full&apikey=']
+urlsaGSP        = ['https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=^GSPC&outputsize=full&apikey=']
 
-urlsaNDAQ = ['https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=NDAQ&outputsize=full&apikey=']
+urlsaNDAQ       = ['https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=NDAQ&outputsize=full&apikey=']
 
-urlsqOPEC = ['https://www.quandl.com/api/v3/datasets/OPEC/ORB/data.csv?start_date=' + start_date + '&end_date=' + end_date + '&api_key=']
+urlsqOPEC       = ['https://www.quandl.com/api/v3/datasets/OPEC/ORB/data.csv?start_date=' + start_date + '&end_date=' + end_date + '&api_key=']
 
 urlsqUSTREASURY = ['https://www.quandl.com/api/v3/datasets/USTREASURY/YIELD.csv?start_date=' + start_date + '&end_date=' + end_date + '&api_key=']
 
@@ -78,26 +72,6 @@ for link4 in urlsqUSTREASURY:
 
 
 #%%
-#if the dataframe has no 'open' and 'close' column, we must reprocess it
-    
-#unprocessed = [d, e]
-#
-#type(e)
-##here we write the column that we will choose as the open and close 
-#
-#column = ['Value', '1 MO']
-#
-#i = 0 
-#
-#for element in unprocessed: 
-#    
-#    element = element.rename(columns={column[i]: 'open'})
-#    element['close'] = element['open']
-#    
-#    i = i +1 
-#    
-#    print('done with ' + element)
-
 
 dataframes_clean =[]
 #here we write the column that we will choose as the open and close 
@@ -119,9 +93,38 @@ for column in columns:
 #%%
 
 #Can only insert dataframes that have the 'open' and 'close' columns
-dataframes = [b,c]
 
 for dataf in dataframes_clean: 
+    
+    i = 1
+    df = []
+    for row in dataf.iterrows():
+        if i < (len(dataf) - 5):
+#            if dataf == (b) | (c): 
+            
+            x = dataf.iloc[i]
+            x1 = x['close']
+            x2 = pd.to_numeric(x1)
+            
+            
+            y = dataf.iloc[i + 4]
+            y1 = y['open']
+            y2 = pd.to_numeric(y1)
+                
+                
+        ret = ((x2 - y2) / y2) 
+
+        df.append(ret)
+        
+        i = i + 1
+        
+    df = pd.DataFrame(df)
+        
+    dataf['return'] = df
+    
+dataframes = [b,c]
+
+for dataf in dataframes: 
     
 
     i = 1
@@ -135,31 +138,10 @@ for dataf in dataframes_clean:
             x2 = pd.to_numeric(x1)
             
             
-            y = dataf.iloc[i + 5]
+            y = dataf.iloc[i + 4]
             y1 = y['open']
             y2 = pd.to_numeric(y1)
-                
-#            elif dataf == d: 
-#                x = dataf.iloc[i]
-#                x1 = x['Value']
-#                x2 = pd.to_numeric(x1)
-#                
-#                
-#                y = dataf.iloc[i + 5]
-#                y1 = y['Value']
-#                y2 = pd.to_numeric(y1)
-#                
-#            elif dataf == e: 
-#                x = dataf.iloc[i]
-#                x1 = x['1 MO']
-#                x2 = pd.to_numeric(x1)
-#                
-#                y = dataf.iloc[i + 5]
-#                y1 = y['1 MO']
-#                y2 = pd.to_numeric(y1)
 
-                
-                
         ret = ((x2 - y2) / y2) 
 
         df.append(ret)
@@ -168,32 +150,35 @@ for dataf in dataframes_clean:
         
     df = pd.DataFrame(df)
         
-#    print(dataf)
-    dataf['return'] = df
+    dataf['return'] = df               
     
-
-    
- #%%
-#Now we do some post-processing to have the dataframe prepared.    
-
-#cols_of_interest = ['Date', 'return']
-#i = 0 
-#for col in dataframes_clean[i]: 
-#    if i < len(dataframes): 
-#        if col != 'Date' or 'return': 
-#            del dataframes_clean[i][col]
-#
-#    i = i + 1
-#
-#dataframes_clean[0]
-
 
 #%%
-b = dataframes[0].drop(['open', 'close', 'high', 'low', 'volume'], axis=1)
-c = dataframes[1].drop(['open', 'close', 'high', 'low', 'volume'], axis=1) 
-d = dataframes_clean[0].drop(['open', 'close'], axis=1) 
-#e = dataframes_clean[0]['Date', 'return']
 
 
-e = dataframes_clean[0](dataframes_clean[0].intersection(['Date','return']), 1, inplace=True)
+b = dataframes[0][['Date', 'return']]
+c = dataframes[1][['Date', 'return']]
+d = dataframes_clean[0][['Date', 'return']]
+e = dataframes_clean[1][['Date', 'return']]
+
+ff1 = pd.bdate_range('2008-01-01', '2019-01-31')
+ff1 = pd.DataFrame(ff1,columns=['Date'])
+ff1 = ff1.iloc[::-1]
+
+
+b['Date']= pd.to_datetime(b['Date'])
+ff2 = pd.merge(ff1, b, on=['Date'], how='left')
+
+c['Date']= pd.to_datetime(c['Date'])
+ff3 = pd.merge(ff2, c, on=['Date'], how='left')
+
+d['Date']= pd.to_datetime(d['Date'])
+ff4 = pd.merge(ff3, d, on=['Date'], how='left')
+
+e['Date']= pd.to_datetime(e['Date'])
+factors_dataframe = pd.merge(ff4, e, on=['Date'], how='left')
+
+factors_dataframe.columns = ['Date', 'return urlsaGSP', 'return urlsaNDAQ', 'return urlsqOPEC', 'return urlsqUSTREASURY']
+
+factors_dataframe.to_csv('/Users/yotroz/Ironhackers Dropbox/Octavio Ramirez/Work/MDBI_IE/Term_2/DATA_SCIENCE_MUNGING_ANALYTICS/factors_data_frame.csv')
 
