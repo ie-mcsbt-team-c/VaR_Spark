@@ -3,7 +3,6 @@
 """
 Created on Thu Mar  7 14:56:14 2019
 
-@author: arthurmaroquenefroissart
 """
 #%%
 
@@ -205,13 +204,13 @@ def generate_trial(t,mean,cov):
 
     for i in range(0, t):
     
-    #creating a loop to generate one sample
-    
-        for ins in instruments:
-            
     #initializing the total portfolio return
-            
-            trial_portfolioReturn = 0
+    
+        trial_portfolioReturn = 0
+    
+    #creating a loop to generate return of 1 instrument
+        
+        for ins in instruments:       
             
     #generating one sample of 4 factors
             
@@ -224,7 +223,7 @@ def generate_trial(t,mean,cov):
     #run linear model for specific instrument and applying coefs + intercept on the 
     #sampled features to get sampled return
         
-            trial_instrumentReturn = sum((get_params(ins)[0] * trial_featuresReturns) + get_params("WATT")[1])
+            trial_instrumentReturn = sum((get_params(ins)[0] * trial_featuresReturns) + get_params(ins)[1])
             
             trial_portfolioReturn += trial_instrumentReturn
         
@@ -246,7 +245,85 @@ def fivePercentVaR(trials):
 
 fivePercentVaR(test)
 
-#%%Functions with Spark Libraries
+#%%
+
+"""
+Adapting the approach for Spark
+
+"""
+
+#For simplicity purposes we will rewrite the generate_trials function in order 
+#to take the coefficients and intercepts from csv files instead of generating them
+#inside of the function
+
+#First we need to create csv files containing the coefficients and intercepts
+
+coef = []
+inter = []
+
+for ins in instruments:
+    
+    coef.append(get_params(ins)[0])
+    inter.append(get_params(ins)[1])
+
+coef = pd.DataFrame(coef)    
+export_csv = coef.to_csv(r"C:\Users\Leila\Desktop\VaR_Spark\coef.csv", index = None, header=False)
+
+inter = pd.DataFrame(inter)    
+export_csv = inter.to_csv(r"C:\Users\Leila\Desktop\VaR_Spark\inter.csv", index = None, header=False)  
+
+#We need to create csv with cov and mean 
+
+cov = np.cov(factorsReturns_list)
+cov = pd.DataFrame(cov)
+export_csv = cov.to_csv(r"C:\Users\Leila\Desktop\VaR_Spark\cov.csv", index = None, header=False) 
+
+mean = list((F1.mean(axis=0),F2.mean(axis=0),F3.mean(axis=0),F4.mean(axis=0)))
+mean = pd.DataFrame(mean)
+export_csv = mean.to_csv(r"C:\Users\Leila\Desktop\VaR_Spark\mean.csv", index = None, header=False)
+
+#Now we need to modify our generate_trials function in order to use the params 
+#from the csv files
+
+def generate_trial(t,mean,cov,coef,inter):
+    
+    #creating an empty list to store the returns
+    
+    trialReturns = []
+    
+    #creating a loop to go over t number of trials
+
+    for i in range(0, t): 
+         
+    #initializing the total portfolio return
+            
+            trial_portfolioReturn = 0
+            
+    #generating one sample of 4 factors
+            
+            trial_factorReturns = np.random.multivariate_normal(mean, cov)
+            
+    #featurizing sampled factors into 12 features
+    
+            trial_featuresReturns = get_features(trial_factorReturns)
+            
+    #run linear model for specific instrument and applying coefs + intercept on the 
+    #sampled features to get sampled return
+    
+        
+            
+            for stockWeights in weights:
+            instrumentReturn = sum([stockWeights[i] * trialFeatures[i] for i in range(len(trialFeatures))])
+            
+            
+            trial_portfolioReturn += trial_instrumentReturn
+        
+        trialReturns.append(trial_portfolioReturn)
+    
+    return trialReturns
+
+
+#Functions with Spark Libraries
 
 def fivePercentVaR(trials):
     numTrials = trials.count()
