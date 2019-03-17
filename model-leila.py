@@ -266,8 +266,8 @@ for ins in instruments:
     coef.append(get_params(ins)[0])
     inter.append(get_params(ins)[1])
 
-coef = pd.DataFrame(coef)    
-export_csv = coef.to_csv(r"C:\Users\Leila\Desktop\VaR_Spark\coef.csv", index = None, header=False)
+coefs = pd.DataFrame(coef)    
+export_csv = coefs.to_csv(r"C:\Users\Leila\Desktop\VaR_Spark\coefs.csv", index = None, header=False)
 
 inter = pd.DataFrame(inter)    
 export_csv = inter.to_csv(r"C:\Users\Leila\Desktop\VaR_Spark\inter.csv", index = None, header=False)  
@@ -285,7 +285,7 @@ export_csv = mean.to_csv(r"C:\Users\Leila\Desktop\VaR_Spark\mean.csv", index = N
 #Now we need to modify our generate_trials function in order to use the params 
 #from the csv files
 
-def generate_trial(t,mean,cov,coef,inter):
+def generate_trial(t,mean,cov,coefs,inter):
     
     #creating an empty list to store the returns
     
@@ -309,18 +309,36 @@ def generate_trial(t,mean,cov,coef,inter):
             
     #run linear model for specific instrument and applying coefs + intercept on the 
     #sampled features to get sampled return
+            
+            for k in range(len(coefs)):
+            
+                trial_instrumentReturn = sum([coefs[k][i] * trial_featuresReturns[i] for i in range(len(trial_featuresReturns))]) + inter[k]
+             
+    #it doesn´t makes sens to add them up though?
     
-        
-            
-            for stockWeights in weights:
-            instrumentReturn = sum([stockWeights[i] * trialFeatures[i] for i in range(len(trialFeatures))])
-            
-            
             trial_portfolioReturn += trial_instrumentReturn
         
-        trialReturns.append(trial_portfolioReturn)
+            trialReturns.append(trial_portfolioReturn)
     
     return trialReturns
+
+parallelism = 2
+t = 10000
+trial_indexes = list(range(0, parallelism))
+seedRDD = sc.parallelize(trial_indexes, parallelism)
+bFactorWeights = sc.broadcast(coefs)
+
+trials = seedRDD.flatMap(lambda idx: \
+                generate_trial(
+                    max(int(t/parallelism), 1), 
+                    mean, cov,
+                    coefs.value,inter.value
+                ))
+trials.cache()
+
+valueAtRisk = fivePercentVaR(trials)
+
+print ("Value at Risk(VaR) 5%:", valueAtRisk)
 
 
 #Functions with Spark Libraries
