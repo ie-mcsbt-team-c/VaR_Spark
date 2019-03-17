@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 
 instruments = ["PIH", "FLWS", "FCTY", "FCCY", "SRCE",
                "FUBC","VNET","TWOU","DGLD","JOBS"
-               ,"EGHT","AVHI","SHLM","AAON","ASTM"
+               ,"EGHT","AAON","ASTM"
                ,"ABAX","XLRN","ACTA","BIRT","MULT"
                ,"YPRO","AEGR","MDRX","EPAX","DOX"
                ,"UHAL","MTGE","CRMT","FOLD","BCOM"
@@ -85,7 +85,7 @@ def transpose(matrix):
     return [[matrix[j][i] for j in range(len(matrix))] for i in range(len(matrix[0]))]
 
 
-def featurize(factorReturns):
+def get_features(factorReturns):
     factorReturns = list(factorReturns)
     squaredReturns = [np.sign(element)*(element)**2 for element in factorReturns]
     squareRootedReturns = [np.sign(element)*abs(element)**0.5 for element in factorReturns]
@@ -97,7 +97,7 @@ def featurize(factorReturns):
 factorMat = transpose(factorsReturns)
 
 # featurize each row of factorMat
-factorFeatures = list(map(featurize,factorMat))
+factorFeatures = list(map(get_features,factorMat))
 
 Dates = pd.DataFrame(factors_with_dates["Date"])
 F = pd.DataFrame(factorFeatures)
@@ -147,7 +147,7 @@ from sklearn.linear_model import LinearRegression
 
 def get_params(ins):
     
-    X = align_dates(ins).drop(columns="Date",axis=0)
+    X = align_dates(ins).drop(columns=["Date",ins],axis=0)
     y = align_dates(ins)[ins]
     
     lm= LinearRegression()
@@ -171,37 +171,89 @@ get_params("SRCE")
 ##We will use a multivariate normal distribution. To get sample values we just we can just use 
 ## numpy like this:
 ##f1, f2, f3, f4 = numpy.random.multivariate_normal(mean, cov)
-#
-#Dates = pd.DataFrame(factorsReturns["Date"])
-#F1 = np.array(factorsReturns["f_GSP"])
-#F2 = np.array(factorsReturns["f_NDAQ"])
-#F3 = np.array(factorsReturns["f_OPEC"])
-#F4 = np.array(factorsReturns["f_TREASURY"])
-#factorsReturns_list = list((F1,F2,F3,F4))
-#
-#cov = np.cov(factorsReturns_list)
-#mean = list((F1.mean(axis=0),F2.mean(axis=0),F3.mean(axis=0),F4.mean(axis=0)))
-#
-#sample = np.random.multivariate_normal(mean, cov)
-#
-#print(cov)
-#print(mean)
-#print(sample)
-#
-##def generate_trial(n,mean,cov,coefficients,intercept):
-#
-#get_params("WATT")
-#    
-#trial_factorReturns = np.random.multivariate_normal(mean, cov)
-#trial_featuresReturns = get_features(trial_factorReturns)
-#
-#
-#i = 0
-#
-#trial_instrumentReturn = 
-#
-##np.dot(trial_featuresReturns , (get_params("WATT"))[0])) 
-##+ (get_params("WATT"))[1])
+
+instruments = ["PIH", "FLWS", "FCTY", "FCCY", "SRCE",
+               "FUBC","VNET","TWOU","DGLD","JOBS"
+               ,"EGHT","AAON","ABAX","XLRN","ACTA"
+               ,"MULT","AEGR","MDRX","DOX"
+               ,"UHAL","MTGE","CRMT","FOLD","BCOM"
+               ,"BOSC","CFFI","CHRW","KOOL"
+               ,"PLCE","JRJC","CHOP","HGSH"
+               ,"HTHT","IMOS","DJCO","SATS"
+               ,"WATT","INBK","FTLB","QABA","GOOG"]
+
+factorsReturns_list = list((F1,F2,F3,F4))
+
+cov = np.cov(factorsReturns_list)
+mean = list((F1.mean(axis=0),F2.mean(axis=0),F3.mean(axis=0),F4.mean(axis=0)))
+
+sample = np.random.multivariate_normal(mean, cov)
+
+print(cov)
+print(mean)
+print(sample)
+
+#Approach in python to generate trials and store the returns in a list
+
+def generate_trial(t,mean,cov):
+    
+    #creating an empty list to store the returns
+    
+    trialReturns = []
+    
+    #creating a loop to go over t number of trials
+
+    for i in range(0, t):
+    
+    #creating a loop to generate one sample
+    
+        for ins in instruments:
+            
+    #initializing the total portfolio return
+            
+            trial_portfolioReturn = 0
+            
+    #generating one sample of 4 factors
+            
+            trial_factorReturns = np.random.multivariate_normal(mean, cov)
+            
+    #featurizing sampled factors into 12 features
+    
+            trial_featuresReturns = get_features(trial_factorReturns)
+            
+    #run linear model for specific instrument and applying coefs + intercept on the 
+    #sampled features to get sampled return
+        
+            trial_instrumentReturn = sum((get_params(ins)[0] * trial_featuresReturns) + get_params("WATT")[1])
+            
+            trial_portfolioReturn += trial_instrumentReturn
+        
+        trialReturns.append(trial_portfolioReturn)
+    
+    return trialReturns
+
+test = generate_trial(5,mean,cov)
+
+def fivePercentVaR(trials):
+    numTrials = len(trials)
+
+    fivePercent = max(round(numTrials/20.0), 1)
+
+    trials.sort()
+
+    fivePercentWorst = trials[0:fivePercent]
+    return fivePercentWorst[-1]
+
+fivePercentVaR(test)
+
+#%%Functions with Spark Libraries
+
+def fivePercentVaR(trials):
+    numTrials = trials.count()
+    topLosses = trials.takeOrdered(max(round(numTrials/20.0), 1))
+    return topLosses[-1]
+
+
 
 
 
