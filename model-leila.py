@@ -14,17 +14,6 @@ import matplotlib.pyplot as plt
 
 #%% Import dataframes
 
-instruments = ["PIH", "FLWS", "FCTY", "FCCY", "SRCE",
-               "FUBC","VNET","TWOU","DGLD","JOBS"
-               ,"EGHT","AAON","ASTM"
-               ,"ABAX","XLRN","ACTA","BIRT","MULT"
-               ,"YPRO","AEGR","MDRX","EPAX","DOX"
-               ,"UHAL","MTGE","CRMT","FOLD","BCOM"
-               ,"BOSC","HAWK","CFFI","CHRW","KOOL"
-               ,"HOTR","PLCE","JRJC","CHOP","HGSH"
-               ,"HTHT","IMOS","DAEG","DJCO","SATS"
-               ,"WATT","INBK","FTLB","QABA","GOOG"]
-
 instrumentsReturns = pd.read_csv("https://raw.githubusercontent.com/ie-mcsbt-team-c/VaR_Spark/master/instruments_returns.csv")
 instrumentsReturns = pd.DataFrame(instrumentsReturns)
 
@@ -73,6 +62,7 @@ factorsReturns = factorsReturns.fillna(method='ffill')
 #%%
 #Featurization of the factors
 
+#Creation of a matrix of factors
 Dates = pd.DataFrame(factorsReturns["Date"])
 F1 = np.array(factorsReturns["f_GSP"])
 F2 = np.array(factorsReturns["f_NDAQ"])
@@ -83,14 +73,12 @@ factorsReturns = list((F1,F2,F3,F4))
 def transpose(matrix):
     return [[matrix[j][i] for j in range(len(matrix))] for i in range(len(matrix[0]))]
 
-
 def get_features(factorReturns):
     factorReturns = list(factorReturns)
     squaredReturns = [np.sign(element)*(element)**2 for element in factorReturns]
     squareRootedReturns = [np.sign(element)*abs(element)**0.5 for element in factorReturns]
     # concat new features
     return squaredReturns + squareRootedReturns + factorReturns
-
 
 # transpose factorsReturns
 factorMat = transpose(factorsReturns)
@@ -207,25 +195,25 @@ def generate_trial(t,mean,cov):
     #initializing the total portfolio return
     
         trial_portfolioReturn = 0
+        
+    #generating one sample of 4 factors
     
+        trial_factorReturns = np.random.multivariate_normal(mean, cov)
+        
+    #featurizing sampled factors into 12 features
+    
+        trial_featuresReturns = get_features(trial_factorReturns)  
+        
     #creating a loop to generate return of 1 instrument
         
         for ins in instruments:       
-            
-    #generating one sample of 4 factors
-            
-            trial_factorReturns = np.random.multivariate_normal(mean, cov)
-            
-    #featurizing sampled factors into 12 features
-    
-            trial_featuresReturns = get_features(trial_factorReturns)
             
     #run linear model for specific instrument and applying coefs + intercept on the 
     #sampled features to get sampled return
         
             trial_instrumentReturn = sum((get_params(ins)[0] * trial_featuresReturns) + get_params(ins)[1])
             
-            trial_portfolioReturn += trial_instrumentReturn
+            trial_portfolioReturn += trial_instrumentReturn*(1/(len(instruments)))
         
         trialReturns.append(trial_portfolioReturn)
     
@@ -326,30 +314,6 @@ parallelism = 2
 t = 10000
 trial_indexes = list(range(0, parallelism))
 seedRDD = sc.parallelize(trial_indexes, parallelism)
-
-val coefs = spark.read
-         .format("csv")
-         .option("header", "false") 
-         .option("mode", "DROPMALFORMED")
-         .load("C:\Users\Leila\Desktop\VaR_Spark\coefs.csv")
-         
-val inter = spark.read
-         .format("csv")
-         .option("header", "false") 
-         .option("mode", "DROPMALFORMED")
-         .load("C:\Users\Leila\Desktop\VaR_Spark\inter.csv")
-         
-val mean = spark.read
-         .format("csv")
-         .option("header", "false") 
-         .option("mode", "DROPMALFORMED")
-         .load("C:\Users\Leila\Desktop\VaR_Spark\mean.csv")
-         
-val cov = spark.read
-         .format("csv")
-         .option("header", "false") 
-         .option("mode", "DROPMALFORMED")
-         .load("C:\Users\Leila\Desktop\VaR_Spark\cov.csv")
 
 trials = seedRDD.flatMap(lambda idx: \
                 generate_trial(
