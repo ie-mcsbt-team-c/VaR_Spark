@@ -28,7 +28,7 @@ urlsqUSTREASURY = ['https://www.quandl.com/api/v3/datasets/USTREASURY/YIELD.csv?
 
 
 #We do separate loops to ibtain the csv file because of the
-# different API structures
+#different API structures
 
 #We will use provisional variable names like b, c, d, e for each factor DF
 
@@ -139,6 +139,7 @@ for dataf in dataframes_clean:
 #instead of an absolute value              
         ret = ((x2 - y2) / y2) 
 
+
         df.append(ret)
         
         i = i + 1
@@ -190,6 +191,7 @@ e = dataframes_clean[1][['Date', 'return']]
 #that are interesting for us, a "mask" of dates. We call this range of values
 #under the name Date. 
 
+e.replace(0, method='bfill')
 
 df1 = pd.bdate_range('2008-01-01', '2019-01-31')
 df1 = pd.DataFrame(df1,columns=['Date'])
@@ -197,6 +199,7 @@ df1 = pd.DataFrame(df1,columns=['Date'])
 df1 = df1.iloc[::-1]
 
 #A number of merges using the date as the index. 
+#We concatenate the merges. 
 b['Date']= pd.to_datetime(b['Date'])
 df2 = pd.merge(df1, b, on=['Date'], how='left')
 
@@ -229,15 +232,22 @@ plt.bar(np.arange(len(null_counts)),null_counts)
 # Therefore filling null values with the proceeding value can be an adequate method to deal with them. 
 null_data = df2[df2.isnull().any(axis=1)]
 
-df5.replace(np.inf, np.nan)
-df5.replace(-np.inf, np.nan)
-
+#We fill the null values with a backfill. 
 
 df5 = df5.fillna(method='bfill')
+
+#Here we replace all the infinite values (because of, in some cases, the return
+#divides by zero). 
+#We replace the nul values (some of them might still be in the dataframe because
+#of the concatenation of NaNs or Infs)
+df5.replace([np.inf, np.nan], 0)
+
 
 
 #Finally, we name the columns to keep track of each return
 df5.columns = ['Date', 'return urlsaGSP', 'return urlsaNDAQ', 'return urlsqOPEC', 'return urlsqUSTREASURY']
+
 #We export it to a csv taking away the index-column. 
-df5.to_csv('/Users/yotroz/Ironhackers Dropbox/Octavio Ramirez/Work/MDBI_IE/Term_2/DATA_SCIENCE_MUNGING_ANALYTICS/VaR-Spark-Montecarlo/VaR_Spark/factors_returns.csv', index=False)
+df5.to_csv('/Users/yotroz/Ironhackers Dropbox/Octavio Ramirez/Work/MDBI_IE/Term_2/DATA_SCIENCE_MUNGING_ANALYTICS/VaR-Spark-Montecarlo/VaR_Spark/factors_returns1.csv', index=False)
+
 
